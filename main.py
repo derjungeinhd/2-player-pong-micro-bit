@@ -1,4 +1,5 @@
 def start_game():
+    global player_number, player_1_pos, player_2_pos, player_has_ball, is_game_running, ball_direction
     music.play(music.tone_playable(440, music.beat(BeatFraction.QUARTER)),
         music.PlaybackMode.IN_BACKGROUND)
     basic.show_number(3)
@@ -16,12 +17,22 @@ def start_game():
     basic.show_number(0)
     basic.pause(100)
     basic.clear_screen()
+    player_has_ball = 1
+    if player_number == 1:
+        player_1_pos = 2
+        led.plot(0, 2)
+        ball_direction = [1, randint(0, 2)]
+    elif player_number == 2:
+        player_2_pos = 2
+        led.plot(4, 2)
+    is_game_running = True
+
 
 def end_game():
     pass
 
 def on_received_string(receivedString):
-    global linked, player_number, player_has_ball, is_game_running, ball_direction
+    global linked, player_number, player_has_ball, is_game_running, ball_direction, ball_pos
     if receivedString == "initialise":
         linked = True
         radio.send_string("ini_finished")
@@ -44,16 +55,16 @@ def on_received_string(receivedString):
         basic.pause(2000)
         radio.send_string("start_game")
         start_game()
-        led.plot(4, 2)
-        player_has_ball = 1
-        is_game_running = True
     elif receivedString == "start_game":
         start_game()
-        led.plot(0, 2)
-        player_has_ball = 1
-        ball_direction = [1, randint(0, 2)]
-        is_game_running = True
 radio.on_received_string(on_received_string)
+
+def on_received_value(name, value):
+    if name == "switch2P1":
+
+    elif name == "switch2P2":
+
+radio.on_received_value(on_received_value)
 
 def on_button_pressed_a():
     global player_1_pos, player_2_pos
@@ -90,7 +101,7 @@ player_has_ball = 1
 player_2_pos = 2
 player_1_pos = 2
 ball_pos = [2, 2]
-ball_direction = [1, randint(0, 2)]
+ball_direction = [1, randint(0, 1)]
 is_game_running = False
 linked = False
 
@@ -118,11 +129,37 @@ while not (linked):
             basic.pause(500)
 
 def on_forever():
+    global ball_pos, ball_direction, player_has_ball, player_number
     if is_game_running:
         basic.pause(500)
         if player_has_ball == player_number:
-            led.unplot(ball_x, ball_y)
+            led.unplot(ball_pos[0], ball_pos[1])
+        
+        if ball_direction[1] == 0:
+            if ball_pos[1] == 0:
+                ball_pos[1] += 1
+                ball_direction[1] = 1
+            else:
+                ball_pos[1] -= 1
+        elif ball_direction[1] == 1:
+            if ball_pos[1] == 4:
+                ball_pos[1] -= 1
+                ball_direction[1] = 0
+            else:
+                ball_pos[1] += 1
+        
+        if ball_direction[0] == 0:
+            if ball_pos[0] == 0:
+                if player_number == 1:
+                    if ball_pos[1] == player_1_pos:
+                        
+                    else:
+                        ball_pos[1]
+                elif player_number == 2:
+                    radio.send_value("switch2P1", ball_pos[1])
+                    player_has_ball == 1
+        elif ball_direction[0] == 1:
+        
         if player_has_ball == player_number:
-            led.plot(ball_x, ball_y)
+            led.plot(ball_pos[0], ball_pos[1])
 basic.forever(on_forever)
-
