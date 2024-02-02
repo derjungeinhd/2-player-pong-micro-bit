@@ -129,7 +129,7 @@ while not (linked):
             basic.pause(500)
 
 def on_forever():
-    global ball_pos, ball_direction, player_has_ball, player_number
+    global ball_pos, ball_direction, player_has_ball, player_number, is_game_running, player_1_pos, player_2_pos
     if is_game_running:
         basic.pause(500)
         if player_has_ball == player_number:
@@ -152,9 +152,12 @@ def on_forever():
             if ball_pos[0] == 0:
                 if player_number == 1:
                     if ball_pos[1] == player_1_pos:
-                        
+                        ball_pos[0] += 1
+                        ball_direction[0] = 1
                     else:
-                        ball_pos[1]
+                        is_game_running
+                        end_game()
+
                 elif player_number == 2:
                     radio.send_value("switch2P1", ball_pos[1])
                     player_has_ball == 1
