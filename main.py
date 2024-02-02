@@ -28,7 +28,7 @@ def start_game():
     is_game_running = True
 
 
-def end_game():
+def end_game(died_player):
     pass
 
 def on_received_string(receivedString):
@@ -96,6 +96,21 @@ def on_button_pressed_b():
             led.plot(4, player_2_pos)
 input.on_button_pressed(Button.B, on_button_pressed_b)
 
+def calc_ball_y():
+    global ball_direction, ball_pos
+    if ball_direction[1] == 0:
+        if ball_pos[1] == 0:
+            ball_pos[1] += 1
+            ball_direction[1] = 1
+        else:
+            ball_pos[1] -= 1
+    elif ball_direction[1] == 1:
+        if ball_pos[1] == 4:
+            ball_pos[1] -= 1
+            ball_direction[1] = 0
+        else:
+            ball_pos[1] += 1
+
 player_number = 0
 player_has_ball = 1
 player_2_pos = 2
@@ -135,19 +150,6 @@ def on_forever():
         if player_has_ball == player_number:
             led.unplot(ball_pos[0], ball_pos[1])
         
-        if ball_direction[1] == 0:
-            if ball_pos[1] == 0:
-                ball_pos[1] += 1
-                ball_direction[1] = 1
-            else:
-                ball_pos[1] -= 1
-        elif ball_direction[1] == 1:
-            if ball_pos[1] == 4:
-                ball_pos[1] -= 1
-                ball_direction[1] = 0
-            else:
-                ball_pos[1] += 1
-        
         if ball_direction[0] == 0:
             if ball_pos[0] == 0:
                 if player_number == 1:
@@ -155,14 +157,31 @@ def on_forever():
                         ball_pos[0] += 1
                         ball_direction[0] = 1
                     else:
-                        is_game_running
-                        end_game()
-
+                        is_game_running = False
+                        end_game(1)
                 elif player_number == 2:
+                    calc_ball_y()
                     radio.send_value("switch2P1", ball_pos[1])
                     player_has_ball == 1
+            else:
+                ball_pos[0] -= 1
         elif ball_direction[0] == 1:
+            if ball_pos[0] == 4:
+                if player_number == 2:
+                    if ball_pos[1] == player_2_pos:
+                        ball_pos[0] -= 1
+                        ball_direction[0] = 0
+                    else:
+                        is_game_running = False
+                        end_game(2)
+                elif player_number == 1:
+                    calc_ball_y()
+                    radio.send_value("switch2P2", ball_pos[1])
+                    player_has_ball == 2
+            else:
+                ball_pos[0] += 1
         
-        if player_has_ball == player_number:
+        if player_has_ball == player_number && is_game_running:
+            calc_ball_y()
             led.plot(ball_pos[0], ball_pos[1])
 basic.forever(on_forever)
